@@ -10,6 +10,7 @@ import (
 type Config struct {
 	Db   DbConfig
 	Auth AuthConfig
+	Port string
 }
 type DbConfig struct {
 	Dsn string
@@ -24,6 +25,10 @@ func LoadConfig() *Config {
 	if err != nil {
 		log.Println("Предупреждение : .env not found")
 	}
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
 
 	return &Config{
 		Db: DbConfig{
@@ -32,5 +37,6 @@ func LoadConfig() *Config {
 		Auth: AuthConfig{
 			Secret: os.Getenv("Secret"),
 		},
+		Port: port,
 	}
 }
