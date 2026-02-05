@@ -8,6 +8,6 @@ services:
       POSTGRES_DB: ${DB_NAME}
       PGDATA: /data/postgres
     volumes:
-      - ./postgres-data:/data/postgres 
+      - ./pgdata:/data/postgres 
     ports:
-      - "5432:5432"
+      - "5433:5432" 
