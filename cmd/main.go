@@ -1,4 +1,4 @@
-package cmd
+package main
 
 import (
 	"fmt"
@@ -12,6 +12,7 @@ import (
 func main() {
 	cfg := configs.LoadConfig()
 	database := db.NewDb(cfg)
+	database.AutoMigrate(&user.User{})
 	userRepo := user.NewUserRepository(database)
 	authService := auth.NewAuthService(userRepo)
 	router := http.NewServeMux()
