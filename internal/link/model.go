@@ -8,7 +8,7 @@ import (
 
 type Link struct {
 	gorm.Model
-	Url string `json:"url"`
-	Hash string `json:"hash" gorm:"uniqueIndex"`
-
+	Url string `json:"url" gorm:"uniqueIndex;not null"`
+	Hash string `json:"hash" gorm:"uniqueIndex;not null"`
+	UserID uint
 }
