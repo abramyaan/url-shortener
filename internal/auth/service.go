@@ -2,20 +2,23 @@ package auth
 
 import (
 	"errors"
-	"golang.org/x/crypto/bcrypt"
+
 	"url-shortener/internal/user"
 	"url-shortener/pkg/di"
+	"url-shortener/pkg/jwt"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
-
-
 type AuthService struct {
-	UserRepository  di.IUserRepository
+	UserRepository di.IUserRepository
+	JWT            *jwt.JWT
 }
 
-func NewAuthService(userRepository di.IUserRepository) *AuthService {
+func NewAuthService(userRepository di.IUserRepository, jwt *jwt.JWT) *AuthService {
 	return &AuthService{
 		UserRepository: userRepository,
+		JWT:            jwt,
 	}
 }
 
@@ -36,14 +39,18 @@ func (s *AuthService) Register(email, password, name string) (*user.User, error)
 	return s.UserRepository.Create(newUser)
 }
 
-func (s *AuthService) Login(email, password string) (*user.User, error) {
-	u, err:= s.UserRepository.FindByEmail(email)
-	if err!=nil{
-		return nil, errors.New("неверный логин или пароль")
+func (s *AuthService) Login(email, password string) (*user.User, string, error) {
+	u, err := s.UserRepository.FindByEmail(email)
+	if err != nil {
+		return nil, "", errors.New("неверный логин или пароль")
 	}
 	err = bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(password))
-	if err !=nil{
-		return nil, errors.New("неверный логин или пароль")
+	if err != nil {
+		return nil, "", errors.New("неверный логин или пароль")
 	}
-	return  u, nil
+	token, err := s.JWT.Create(u.ID)
+	if err != nil {
+		return nil, "", err
+	}
+	return u, token, nil
 }

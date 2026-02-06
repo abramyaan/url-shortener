@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"url-shortener/configs"
+	"url-shortener/internal/user"
 	"url-shortener/pkg/res"
 )
 
@@ -41,6 +42,10 @@ type LoginRequest struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }
+type LoginResponse struct {
+	Token string     `json:"token"`
+	User  *user.User `json:"user"`
+}
 
 // 5. Метод регистрации
 func (h *AuthHandler) Register() http.HandlerFunc {
@@ -67,17 +72,20 @@ func (h *AuthHandler) Register() http.HandlerFunc {
 func (h *AuthHandler) Login() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var body LoginRequest
-		err:= json.NewDecoder(r.Body).Decode(&body)
+		err := json.NewDecoder(r.Body).Decode(&body)
 		if err != nil {
 			res.Json(w, "Неккоретный формат данных", http.StatusBadRequest)
 			return
 		}
-		user, err := h.AuthService.Login(body.Email, body.Password)
-		if err!=nil {
-			res.Json(w, err.Error(),http.StatusUnauthorized)
-			return 
+		user, token, err := h.AuthService.Login(body.Email, body.Password)
+		if err != nil {
+			res.Json(w, err.Error(), http.StatusUnauthorized)
+			return
 		}
-		
-		res.Json(w, user, http.StatusOK)
+
+		res.Json(w, LoginResponse{
+			Token: token,
+			User:  user,
+		}, http.StatusOK)
 	}
 }
