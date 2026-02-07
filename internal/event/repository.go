@@ -10,6 +10,6 @@ func NewEventRepository(db *gorm.DB) *EventRepository {
 	return &EventRepository{Db:db}
 }
 
-func (repo *EventRepository) Create (event Event) {
+func (repo *EventRepository) Create (event *Event) {
 	repo.Db.Create(event)
 }
