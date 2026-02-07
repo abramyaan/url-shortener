@@ -28,3 +28,9 @@ func (repo *LinkRepository) GetByHash(hash string) (*Link, error) {
 	}
 	return &link, nil
 }
+
+func (repo *LinkRepository) GetByUserID(userID uint) ([]Link, error) {
+	var links []Link
+	err := repo.Db.Preload("Events").Where("user_id = ?", userID).Find(&links).Error
+	return links, err
+}
