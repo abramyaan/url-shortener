@@ -1,8 +1,16 @@
 package link
-
+import "errors"
 // То, что присылает клиент
 type LinkCreateRequest struct {
 	URL string `json:"url"`
+}
+
+func (req *LinkCreateRequest) Validate() error {
+	if req.URL == "" {
+		return errors.New("url is required")
+	}
+	
+	return nil
 }
 
 // Ответ при создании ссылки

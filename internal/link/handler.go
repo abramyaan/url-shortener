@@ -2,6 +2,7 @@ package link
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"url-shortener/pkg/jwt"
 	"url-shortener/pkg/middleware"
@@ -24,6 +25,7 @@ func NewLinkHandler(router *http.ServeMux, deps LinkHandlerDeps) {
 
 	router.Handle("POST /link", middleware.Auth(handler.Create(), deps.JwtService))
 	router.HandleFunc("GET /go/{hash}", handler.GoTo())
+	router.Handle("DELETE /link/{id}", middleware.Auth(handler.Delete(), deps.JwtService))
 }
 
 
@@ -37,7 +39,10 @@ func (h *LinkHandler) Create() http.HandlerFunc {
 			res.Json(w, "invalid request body", http.StatusBadRequest)
 			return
 		}
-
+		if err := body.Validate(); err != nil {
+    	res.Json(w, err.Error(), http.StatusBadRequest)
+    	return
+}
 		userID, ok := r.Context().Value(middleware.UserIdKey).(uint)
 		if !ok {
 			res.Json(w, "unauthorized", http.StatusUnauthorized)
@@ -73,5 +78,29 @@ func (h *LinkHandler) GoTo() http.HandlerFunc {
 		}
 
 		http.Redirect(w, r, link.Url, http.StatusTemporaryRedirect)
+	}
+}
+
+
+func (h *LinkHandler) Delete() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		idString := r.PathValue("id")
+		// Конвертируем строку в uint
+		var id uint
+		_, err := fmt.Sscanf(idString, "%d", &id)
+		if err != nil {
+			res.Json(w, "invalid id", http.StatusBadRequest)
+			return
+		}
+
+		userID, _ := r.Context().Value(middleware.UserIdKey).(uint)
+
+		err = h.LinkService.Repo.Delete(id, userID)
+		if err != nil {
+			res.Json(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		res.Json(w, nil, http.StatusNoContent)
 	}
 }

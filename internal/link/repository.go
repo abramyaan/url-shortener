@@ -34,3 +34,11 @@ func (repo *LinkRepository) GetByUserID(userID uint) ([]Link, error) {
 	err := repo.Db.Preload("Events").Where("user_id = ?", userID).Find(&links).Error
 	return links, err
 }
+
+
+
+func (repo *LinkRepository) Delete(id uint, userID uint) error {
+	// Удаляем только если ID ссылки и ID пользователя совпадают (защита)
+	result := repo.Db.Where("id = ? AND user_id = ?", id, userID).Delete(&Link{})
+	return result.Error
+}
